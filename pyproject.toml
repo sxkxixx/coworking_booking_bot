@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "coworking-booking-bot"
+version = "0.1.0"
+description = ""
+authors = ["sxkxixx <sasha.kornilov.1212@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+aiogram = "^3.5.0"
+pydantic-settings = "^2.2.1"
+asyncpg = "^0.29.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
