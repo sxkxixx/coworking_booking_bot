@@ -11,6 +11,7 @@ from .abstract_message_handler import AbstractMessageHandler
 
 
 class StartCommandMessage(AbstractMessageHandler):
+    """Сообщение для команды /start"""
     FILTERS = [CommandStart()]
 
     NOT_AUTH_MESSAGE: str = (

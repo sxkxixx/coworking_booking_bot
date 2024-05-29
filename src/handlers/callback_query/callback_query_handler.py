@@ -14,4 +14,5 @@ class CallbackQueryHandler(ABC):
             query: CallbackQuery,
             callback_data: CallbackData
     ) -> None:
+        """Callback для обработки CallbackQuery"""
         raise NotImplementedError()

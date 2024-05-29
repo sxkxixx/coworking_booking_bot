@@ -20,7 +20,7 @@ class PasswordMessageExecutor(AbstractExecutor):
 
     subject = "Авторизация. Сервис бронирования коворкингов УрФУ"
 
-    async def execute(self, receiver: str, password: str) -> None:
+    async def execute(self, receiver: str, password: int) -> None:
         message = EmailMessage()
         message["From"] = self.settings.SMTP_EMAIL
         message["To"] = receiver

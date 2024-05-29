@@ -11,4 +11,4 @@ def get_formatted_datetime(dt: datetime.datetime) -> str:
     Возвращает форматированную строку в формате ЧЧ:ММ
     :rtype: str
     """
-    return f'{dt.hour}:{dt.minute}'
+    return dt.strftime("%H:%M")

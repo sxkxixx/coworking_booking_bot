@@ -13,6 +13,8 @@ from .abstract_message_handler import AbstractMessageHandler
 
 
 class EmailMessage(AbstractMessageHandler):
+    """Обработчик сообщения с электронной почтой от пользователя"""
+
     FILTERS = [AuthState.email]
 
     email_regex = re.compile(r'^[A-Za-z0-9]+[.-_]*[A-Za-z0-9]+@(?:urfu.me|urfu.ru)$')

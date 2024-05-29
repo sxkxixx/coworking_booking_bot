@@ -1,6 +1,5 @@
 import asyncio
 import logging
-from datetime import datetime
 from functools import wraps
 from typing import Callable, Optional
 
@@ -26,7 +25,6 @@ def periodic_task_run(sleep: Optional[int] = None):
 
             log.info(f"Initialize a background task {coro.__name__}")
             while True:
-                print(datetime.utcnow())
                 await run(*args, **kwargs)
                 await asyncio.sleep(sleep)
 

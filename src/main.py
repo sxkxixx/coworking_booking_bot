@@ -4,10 +4,11 @@ from aiogram import Bot, Dispatcher
 from jinja2 import Environment, FileSystemLoader
 
 from common.message_executors.password_msg_executor import PasswordMessageExecutor
-from common.tasks import send_confirm_message
+from common.tasks import send_confirm_message, booking_cancel_task
 from handlers import StartCommandMessage, EmailMessage
 from handlers.callback_query import ConfirmCancelCallbackQueryHandler
 from handlers.messages.auth_message import AuthMessage
+from handlers.messages.user_reservation_message import UserReservationMessage
 from infrastructure.database import manager
 from infrastructure.settings import BotSettings, SMTPSettings
 from storage.email_auth_repository.auth_email_data_repository import EmailAuthRepository
@@ -23,7 +24,7 @@ def get_jinja2_environment() -> Environment:
     return env
 
 
-async def _run_polling() -> None:
+async def _main() -> None:
     # Settings
     bot_settings = BotSettings()
     smtp_settings = SMTPSettings()
@@ -48,7 +49,12 @@ async def _run_polling() -> None:
         *EmailMessage.FILTERS
     )
     dp.message.register(
-        AuthMessage(email_auth_repository, user_repository).process_message, *AuthMessage.FILTERS
+        AuthMessage(email_auth_repository, user_repository).process_message,
+        *AuthMessage.FILTERS
+    )
+    dp.message.register(
+        UserReservationMessage(user_repository, reservation_repository).process_message,
+        *UserReservationMessage.FILTERS
     )
 
     # Register callback query handlers
@@ -60,13 +66,13 @@ async def _run_polling() -> None:
     bot = Bot(token=bot_settings.BOT_TOKEN)
 
     # background periodic tasks
-    tasks = [
+    _tasks = [
+        asyncio.create_task(booking_cancel_task(bot, reservation_repository)),
         asyncio.create_task(send_confirm_message(bot, reservation_repository)),
-        # asyncio.create_task(send_hello_world_task(bot, user_repository))
     ]
 
     await dp.start_polling(bot)
 
 
 if __name__ == '__main__':
-    asyncio.run(_run_polling())
+    asyncio.run(_main())

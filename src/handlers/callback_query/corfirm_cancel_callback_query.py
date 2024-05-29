@@ -14,6 +14,8 @@ __all__ = [
 
 
 class ConfirmCancelCallbackQueryHandler(CallbackQueryHandler):
+    """Класс обработчик для кнопок подтвердить / отклонить бронирование"""
+
     CONFIRM_MESSAGE: str = (
         """Вы успешно подтвердили бронирование.\n"""
         """Ждем вас в {session_start}"""
@@ -41,15 +43,16 @@ class ConfirmCancelCallbackQueryHandler(CallbackQueryHandler):
             raise Exception()
         assert reservation.status == BookingStatus.AWAIT_CONFIRM.value
 
-        if callback_data.action == ConfirmCancelAction.confirm:
-            await self.reservation_repository.change_status(reservation, BookingStatus.CONFIRMED)
+        status = BookingStatus.CONFIRMED if ConfirmCancelAction.confirm else BookingStatus.CANCELLED
+        await self.reservation_repository.change_status(reservation, status)
+        # Обязательно, чтоб не было повторных нажатий на кнопки
+        await query.message.delete()
+
+        if status == BookingStatus.CONFIRMED:
             await query.message.answer(
                 text=self.CONFIRM_MESSAGE.format(session_start=reservation.session_start)
             )
             return
-
-        await self.reservation_repository.change_status(reservation, BookingStatus.CANCELLED)
         await query.message.answer(
             text=self.CANCEL_MESSAGE.format(session_start=reservation.session_start)
         )
-        await query.message.delete()
