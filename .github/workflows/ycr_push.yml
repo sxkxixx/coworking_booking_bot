@@ -14,7 +14,7 @@ jobs:
       - name: Yandex Cloud CR "Login"
         uses: yc-actions/yc-cr-login@v2
         with:
-          yc-sa_json-credentials: ${{ secrets.YC_SA_JSON_CREDENTIALS }}
+          yc-sa-json-credentials: ${{ secrets.YC_SA_JSON_CREDENTIALS }}
 
       - name: Build and push to YC CR
         env:
