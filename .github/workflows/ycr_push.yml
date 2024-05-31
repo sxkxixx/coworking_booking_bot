@@ -22,4 +22,4 @@ jobs:
           CR_REPOSITORY: ${{ secrets.CR_REPOSITORY }}
         run: |
           docker build -t cr.yandex/$CR_REGISTRY_ID/$CR_REPOSITORY:latest .
-          docker push cr.yandex/$CR_REGISTRY/$CR_REPOSITORY:latest
+          docker push cr.yandex/$CR_REGISTRY_ID/$CR_REPOSITORY:latest
