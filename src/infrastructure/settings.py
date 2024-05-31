@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Literal
 
 import dotenv
 from pydantic_settings import BaseSettings
@@ -8,6 +8,16 @@ dotenv.load_dotenv('.env')
 
 class BotSettings(BaseSettings):
     BOT_TOKEN: str
+    LOG_LEVEL: Literal[
+        "CRITICAL",
+        "FATAL",
+        "ERROR",
+        "WARN",
+        "WARNING",
+        "INFO",
+        "DEBUG",
+        "NOTSET",
+    ] = "INFO"
 
 
 class DatabaseSettings(BaseSettings):

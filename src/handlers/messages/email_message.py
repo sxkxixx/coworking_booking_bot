@@ -1,3 +1,4 @@
+import logging
 import re
 from typing import Optional
 
@@ -10,6 +11,8 @@ from infrastructure.database import User, EmailAuthData
 from storage.email_auth_repository.abstract_email_auth_repository import AbstractEmailAuthRepository
 from storage.user_repository import AbstractUserRepository
 from .abstract_message_handler import AbstractMessageHandler
+
+logger = logging.getLogger(__name__)
 
 
 class EmailMessage(AbstractMessageHandler):
@@ -50,13 +53,16 @@ class EmailMessage(AbstractMessageHandler):
     async def process_message(self, message: Message, state: FSMContext) -> None:
         email: str = message.text
         if self.email_regex.match(email) is None:
+            logger.error(f"Email = {email} not match pattern")
             await message.answer(self.INVALID_EMAIL_MESSAGE, parse_mode='html')
             return
         user: Optional[User] = await self.user_repository.get_user_by_email(email)
         if not user:
+            logger.error(f"User with email={email} not found")
             await message.answer(self.USER_NOT_FOUND_MESSAGE, parse_mode='html')
             return
         auth_data: EmailAuthData = await self.email_auth_repository.create(user, message.chat.id)
         await self.email_executor.execute(receiver=user.email, password=auth_data.password)
+        logger.info(f"Password is sent to user email={user.email}")
         await state.set_state(AuthState.one_time_password)
         await message.answer(self.PASSWORD_SENT_MESSAGE % email)

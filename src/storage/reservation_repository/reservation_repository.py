@@ -69,3 +69,11 @@ class ReservationRepository(AbstractReservationRepository):
             return await self.manager.get_or_none(query)
         except AttributeError:
             return None
+
+    async def select_passed(self) -> List[Reservation]:
+        query = (
+            Reservation.select()
+            .where(Reservation.status != BookingStatus.CANCELLED)
+            .where(Reservation.session_end <= get_yekaterinburg_dt())
+        )
+        return await self.manager.execute(query)

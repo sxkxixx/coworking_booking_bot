@@ -7,7 +7,7 @@ from .abstract_executor import AbstractExecutor
 
 
 class PasswordMessageExecutor(AbstractExecutor):
-    template_name = "one_time_password.html"
+    template_name = "email_password.html"
 
     def __init__(
             self,

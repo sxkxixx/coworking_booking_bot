@@ -1,3 +1,4 @@
+import logging
 from typing import Optional
 
 from aiogram.fsm.context import FSMContext
@@ -9,6 +10,8 @@ from storage.email_auth_repository.abstract_email_auth_repository import Abstrac
 from storage.user_repository import AbstractUserRepository
 from .abstract_message_handler import AbstractMessageHandler
 
+logger = logging.getLogger(__name__)
+
 
 class AuthMessage(AbstractMessageHandler):
     INCORRECT_PASSWORD_MESSAGE = (
@@ -17,7 +20,7 @@ class AuthMessage(AbstractMessageHandler):
         """или обратитесь в тех. поддержку"""
     )
     SUCCESS_AUTH_MESSAGE = (
-        """Поздравляем с успешной авторизацией в телеграм-боте."""
+        """Поздравляем с успешной авторизацией в телеграм-боте. """
         """Теперь я смогу отправлять вам сообщения о подтверждении бронирования и информацию о """
         """неожиданных изменениях в расписании работы коворкингов."""
     )
@@ -36,6 +39,7 @@ class AuthMessage(AbstractMessageHandler):
         try:
             pwd = int(message.text)
         except ValueError:
+            logger.error(f"Failed to parse password from user = {message.from_user.username}")
             await message.answer(self.INCORRECT_PASSWORD_MESSAGE)
             return
         auth_data: Optional[EmailAuthData] = await self.email_auth_repository.get(
@@ -43,9 +47,12 @@ class AuthMessage(AbstractMessageHandler):
             EmailAuthData.password == pwd
         )
         if not auth_data:
+            logger.error(f"Not found record with email auth data")
             await message.answer(self.INCORRECT_PASSWORD_MESSAGE)
             return
+        logger.error(f"User={auth_data.user.email} enter correct password")
         await self.user_repository.set_chat_id(auth_data.user, message.chat.id)
         await self.email_auth_repository.delete_record(auth_data)
         await state.clear()
+        await message.delete()
         await message.answer(self.SUCCESS_AUTH_MESSAGE)

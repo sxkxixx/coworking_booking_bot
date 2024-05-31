@@ -24,3 +24,7 @@ class AbstractReservationRepository(ABC):
     @abstractmethod
     async def get_income_reservation(self, user: User) -> Optional[Reservation]:
         raise NotImplementedError()
+
+    @abstractmethod
+    async def select_passed(self) -> List[Reservation]:
+        raise NotImplementedError()

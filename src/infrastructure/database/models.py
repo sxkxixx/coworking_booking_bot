@@ -44,7 +44,7 @@ class Coworking(peewee.Model):
     address: str = peewee.CharField(max_length=128, null=False)
 
     class Meta:
-        table_name = 'coworking_places'
+        table_name = 'coworking'
         database = database
 
 

@@ -1,3 +1,4 @@
+import logging
 from typing import Optional
 
 from aiogram.types import CallbackQuery
@@ -11,6 +12,8 @@ from .callback_query_handler import CallbackQueryHandler
 __all__ = [
     'ConfirmCancelCallbackQueryHandler'
 ]
+
+logger = logging.getLogger(__name__)
 
 
 class ConfirmCancelCallbackQueryHandler(CallbackQueryHandler):
@@ -39,12 +42,14 @@ class ConfirmCancelCallbackQueryHandler(CallbackQueryHandler):
     ) -> None:
         reservation: Optional[Reservation] = await self.reservation_repository.get_reservation(
             callback_data.reservation_id)
+        logger.info(f"Action at Reservation(id={reservation.id})")
         if not reservation:
+            logger.info(f"Unexpected error, Reservation(id={callback_data.reservation_id}) is null")
             raise Exception()
         assert reservation.status == BookingStatus.AWAIT_CONFIRM.value
-
         status = BookingStatus.CONFIRMED if ConfirmCancelAction.confirm else BookingStatus.CANCELLED
         await self.reservation_repository.change_status(reservation, status)
+        logger.info(f"Changing Reservation(id={reservation.id}) to status={status}")
         # Обязательно, чтоб не было повторных нажатий на кнопки
         await query.message.delete()
 

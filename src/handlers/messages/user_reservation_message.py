@@ -1,3 +1,4 @@
+import logging
 from typing import Optional
 
 from aiogram.filters import Command
@@ -9,6 +10,8 @@ from infrastructure.database import User, Reservation, PlaceType
 from storage.reservation_repository import AbstractReservationRepository
 from storage.user_repository import AbstractUserRepository
 from .abstract_message_handler import AbstractMessageHandler
+
+logger = logging.getLogger(__name__)
 
 
 class UserReservationMessage(AbstractMessageHandler):
@@ -45,8 +48,11 @@ class UserReservationMessage(AbstractMessageHandler):
         if not user:
             await message.answer(self.UNAUTHORIZED_MESSAGE)
             return
-        booking: Reservation | None = await self.reservation_repository.get_income_reservation(user)
+        booking: Optional[Reservation] = (
+            await self.reservation_repository.get_income_reservation(user)
+        )
         if not booking:
+            logger.info(f"User(email={user.email}) has no incoming reservation")
             await message.answer(self.NO_INCOMING_BOOKING_MESSAGE)
             return
         await message.answer(
