@@ -3,7 +3,6 @@ from typing import List, Optional
 
 from peewee_async import Manager
 
-from common.utils import get_yekaterinburg_dt
 from infrastructure.database import BookingStatus, User, CoworkingSeat, Coworking
 from infrastructure.database import Reservation
 from .abstract_reservation_repository import AbstractReservationRepository
@@ -27,7 +26,7 @@ class ReservationRepository(AbstractReservationRepository):
             # Подтверждение за 2 часа,
             # разность между текущим временем и стартом брони меньше либо равно 2-ум часам
             .where(
-                (Reservation.session_start - get_yekaterinburg_dt()) <= self.confirm_delta
+                (Reservation.session_start - datetime.datetime.now()) <= self.confirm_delta
             )
             .join(User)
             .switch(Reservation)
@@ -44,7 +43,7 @@ class ReservationRepository(AbstractReservationRepository):
             Reservation.select()
             .where(Reservation.status == BookingStatus.AWAIT_CONFIRM.value)
             .where(
-                (Reservation.session_start - get_yekaterinburg_dt()) <= self.cancel_delta
+                (Reservation.session_start - datetime.datetime.now()) <= self.cancel_delta
             )
             .join(User)
             .switch(Reservation)
@@ -58,7 +57,7 @@ class ReservationRepository(AbstractReservationRepository):
             Reservation.select()
             .where(Reservation.user == user)
             .where(Reservation.status != BookingStatus.CANCELLED.value)
-            .where(get_yekaterinburg_dt <= Reservation.session_end)
+            .where(datetime.datetime.now() <= Reservation.session_end)
             .join(User)
             .switch(Reservation)
             .join(CoworkingSeat)
@@ -74,6 +73,6 @@ class ReservationRepository(AbstractReservationRepository):
         query = (
             Reservation.select()
             .where(Reservation.status != BookingStatus.CANCELLED)
-            .where(Reservation.session_end <= get_yekaterinburg_dt())
+            .where(Reservation.session_end <= datetime.datetime.now())
         )
         return await self.manager.execute(query)
