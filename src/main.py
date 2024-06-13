@@ -26,7 +26,7 @@ from storage.user_repository.user_repository import UserRepository
 
 def get_jinja2_environment() -> Environment:
     env = Environment(
-        loader=FileSystemLoader('../templates'),
+        loader=FileSystemLoader('/templates'),
         enable_async=True
     )
     return env
