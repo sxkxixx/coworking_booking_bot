@@ -8,6 +8,7 @@ from aiogram.types import Message
 from common.message_executors.password_msg_executor import PasswordMessageExecutor
 from common.states import AuthState
 from infrastructure.database import User, EmailAuthData
+from infrastructure.settings import InfrastructureSettings
 from storage.email_auth_repository.abstract_email_auth_repository import AbstractEmailAuthRepository
 from storage.user_repository import AbstractUserRepository
 from .abstract_message_handler import AbstractMessageHandler
@@ -30,9 +31,11 @@ class EmailMessage(AbstractMessageHandler):
     )
 
     USER_NOT_FOUND_MESSAGE: str = (
-        """Здравствуйте! Я вас пока не знаю. Если у вас уже есть аккаунт в сервисе бронирования """
-        """коворкингов УРФУ, то обратитесь в техническую поддержку по адресу @Электронная почта@."""
-        """Если еще нет, то вы можете зарегистрироваться по адресу: @Ссылка на сайт@"""
+        """Здравствуйте! К сожалению, я Вас пока не знаю.\n"""
+        """Если у вас уже есть аккаунт в сервисе бронирования """
+        """коворкингов УрФУ, то обратитесь в техническую поддержку по адресу {tech_support}. """
+        """Если еще нет, то вы можете зарегистрироваться в нашем """
+        """<a href='{frontend_url}'>сервисе</a>"""
     )
 
     PASSWORD_SENT_MESSAGE = (
@@ -44,11 +47,13 @@ class EmailMessage(AbstractMessageHandler):
             self,
             user_repository: AbstractUserRepository,
             email_auth_repository: AbstractEmailAuthRepository,
-            email_executor: PasswordMessageExecutor
+            email_executor: PasswordMessageExecutor,
+            infrastructure_settings: InfrastructureSettings,
     ):
         self.user_repository = user_repository
         self.email_auth_repository = email_auth_repository
         self.email_executor = email_executor
+        self.infrastructure_settings = infrastructure_settings
 
     async def process_message(self, message: Message, state: FSMContext) -> None:
         email: str = message.text
@@ -59,7 +64,13 @@ class EmailMessage(AbstractMessageHandler):
         user: Optional[User] = await self.user_repository.get_user_by_email(email)
         if not user:
             logger.error(f"User with email={email} not found")
-            await message.answer(self.USER_NOT_FOUND_MESSAGE, parse_mode='html')
+            await message.answer(
+                self.USER_NOT_FOUND_MESSAGE.format(
+                    tech_support=self.infrastructure_settings.TECHNICAL_SUPPORT_EMAIL,
+                    frontend_url=self.infrastructure_settings.FRONTEND_HOST,
+                ),
+                parse_mode='html'
+            )
             return
         auth_data: EmailAuthData = await self.email_auth_repository.create(user, message.chat.id)
         await self.email_executor.execute(receiver=user.email, password=auth_data.password)

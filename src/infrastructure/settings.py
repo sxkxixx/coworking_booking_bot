@@ -29,8 +29,9 @@ class DatabaseSettings(BaseSettings):
 
 
 class InfrastructureSettings(BaseSettings):
-    FRONTEND_HOST: Optional[str] = None
-    BACKEND_API_HOST: str = "http://localhost:8000"
+    FRONTEND_HOST: Optional[str] = "http://158.160.122.132:80"
+    BACKEND_API_HOST: str = "http://158.160.122.132:8000"
+    TECHNICAL_SUPPORT_EMAIL: str = "Alexander.Kornilov@urfu.me"
 
 
 class SMTPSettings(BaseSettings):

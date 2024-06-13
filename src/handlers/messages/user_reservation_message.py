@@ -5,16 +5,18 @@ from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
-from common.utils import get_formatted_datetime
+from common.utils import extract_time_from_dt
 from infrastructure.database import User, Reservation, PlaceType
+from infrastructure.settings import InfrastructureSettings
 from storage.reservation_repository import AbstractReservationRepository
 from storage.user_repository import AbstractUserRepository
 from .abstract_message_handler import AbstractMessageHandler
+from ..mixins import HelpMenuMixin
 
 logger = logging.getLogger(__name__)
 
 
-class UserReservationMessage(AbstractMessageHandler):
+class UserReservationMessage(AbstractMessageHandler, HelpMenuMixin):
     FILTERS = [Command("upcoming")]
 
     UNAUTHORIZED_MESSAGE: str = (
@@ -22,8 +24,8 @@ class UserReservationMessage(AbstractMessageHandler):
     )
 
     RESERVATION_PATTERN: str = (
-        """Найдено предстоящее бронирование!"""
-        """Коворкинг: {coworking_name}\n"""
+        """Найдено предстоящее бронирование!🔥\n"""
+        """Коворкинг: {coworking_name} 🏢\n"""
         """Адрес: {address}\n"""
         """Время бронирования: {session_start} - {session_end}\n"""
         """Тип места: {place_type}"""
@@ -38,10 +40,12 @@ class UserReservationMessage(AbstractMessageHandler):
     def __init__(
             self,
             user_repository: AbstractUserRepository,
-            reservation_repository: AbstractReservationRepository
+            reservation_repository: AbstractReservationRepository,
+            infra_settings: InfrastructureSettings
     ):
         self.user_repository = user_repository
         self.reservation_repository = reservation_repository
+        self.infra_settings = infra_settings
 
     async def process_message(self, message: Message, state: FSMContext) -> None:
         user: Optional[User] = await self.user_repository.get_user_by_chat_id(message.chat.id)
@@ -59,8 +63,8 @@ class UserReservationMessage(AbstractMessageHandler):
             self.RESERVATION_PATTERN.format(
                 coworking_name=booking.seat.coworking.title,
                 address=booking.seat.coworking.address,
-                session_start=get_formatted_datetime(booking.session_start),
-                session_end=get_formatted_datetime(booking.session_end),
+                session_start=extract_time_from_dt(booking.session_start),
+                session_end=extract_time_from_dt(booking.session_end),
                 place_type=self.__place_type_ru(booking.seat.place_type),
             ),
         )
@@ -71,3 +75,11 @@ class UserReservationMessage(AbstractMessageHandler):
             PlaceType.MEETING_ROOM.value: "Переговорная комната",
             PlaceType.TABLE.value: "Стол"
         }[place_type]
+
+    @property
+    def command(self) -> str:
+        return "/upcoming"
+
+    @property
+    def description(self) -> str:
+        return "Посмотреть ближайшее бронирование"

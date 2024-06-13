@@ -5,7 +5,7 @@ from typing import List
 from aiogram import Bot
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-from common.utils import get_formatted_datetime
+from common.utils import extract_time_from_dt
 from common.utils.messages import CONFIRM_RESERVATION_MESSAGE, CANCEL_RESERVATION_MESSAGE
 from infrastructure.database import Reservation, User, CoworkingSeat, Coworking, BookingStatus
 from storage.reservation_repository import AbstractReservationRepository
@@ -40,10 +40,9 @@ async def send_confirm_message(
             chat_id=user.telegram_chat_id,
             text=CONFIRM_RESERVATION_MESSAGE.format(
                 name=coworking.title,
-                session_start=get_formatted_datetime(reservation.session_start),
-                confirm_deadline=get_formatted_datetime(
-                    reservation.session_start - datetime.timedelta(minutes=30)
-                ),
+                session_start=extract_time_from_dt(reservation.session_start),
+                confirm_deadline=extract_time_from_dt(
+                    reservation.session_start - datetime.timedelta(minutes=30)),
             ),
             reply_markup=InlineKeyboardMarkup(
                 inline_keyboard=[[
@@ -95,7 +94,7 @@ async def booking_cancel_task(
             chat_id=user.telegram_chat_id,
             text=CANCEL_RESERVATION_MESSAGE.format(
                 name=coworking.title,
-                session_start=get_formatted_datetime(reservation.session_start),
+                session_start=extract_time_from_dt(reservation.session_start),
             ),
         )
 
