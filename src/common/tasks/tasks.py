@@ -114,6 +114,5 @@ async def mark_reservations_as_passed(
         # Если логика везде правильная, статус бронирования будет везде CONFIRMED
         if booking.status != BookingStatus.CONFIRMED.value:
             logger.error("Status of Reservation(id=%s) $ne Confirmed", booking.id)
-        assert booking.status == BookingStatus.CONFIRMED
         await reservation_repository.change_status(booking, BookingStatus.PASSED)
         logger.info("Reservation(id=%s) marked as Passed", booking.id)
